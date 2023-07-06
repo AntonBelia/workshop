@@ -37,7 +37,7 @@ function setTasksToLocalStorage(tasks) {
  * Створюємо окрему задачу
  * @param {String} task - окрема задача
  */
-function createSingleTaskElement(task) {
+function createSingleTaskElement(task, index) {
     // Створюємо HTML елемент li
     const li = document.createElement('li');
     // Додаємо елементу клас
@@ -49,6 +49,9 @@ function createSingleTaskElement(task) {
     const deleteElement = document.createElement('span');
     // Додаємо елементу клас
     deleteElement.className = 'delete-item';
+
+	deleteElement.dataset.index = index;
+
     // Кладемо в нього іконку
     deleteElement.innerHTML = '<i class="fa fa-remove"></i>';
     // Додаємо елемент в елемент списку
@@ -65,9 +68,11 @@ function renderTasks() {
     // Отримуємо задачі з localStorage або пустий масив
     const tasks = getTasksFromLocalStorage();
 
+	
+
     // Проходимо по масиву задач і додаємо кожну задачу в список, в DOM
-    tasks.forEach((task) => {
-        createSingleTaskElement(task);
+    tasks.forEach((task, index) => {
+        createSingleTaskElement(task, index);
     })
 }
 
@@ -127,30 +132,29 @@ function clearSingleTask(event) {
 
     // Якщо батьківський елемент має відповідний клас
     if (iconContainer.classList.contains('delete-item')) {
+
+		const index = iconContainer.dataset.index;
+
         // Отримуємо підтвердження користувача
         if (confirm('Ви впевнені що хочете видалити цю задачу?')) {
             // Видаляємо елемент з DOM та з localStorage
             iconContainer.parentElement.remove();
-            removeTaskFromLocalStorage(iconContainer.parentElement);
+            removeTaskFromLocalStorage(index);
         }
     }
 }
+
 
 /**
  * Видаляємо окрему задачу з localStorage та з DOM
  * @param taskToRemove - DOM елемент
  */
-function removeTaskFromLocalStorage(taskToRemove) {
+function removeTaskFromLocalStorage(index) {
     // Отримуємо поточні задачі з localStorage
     const tasks = getTasksFromLocalStorage();
 
-    // Проходимо по масиву задач і видаляємо необхідну
-    tasks.forEach((task, index) => {
-        if (taskToRemove.textContent === task) {
-            tasks.splice(index, 1)
-        }
-    })
-
+    tasks.splice(index, 1);
+    console.log(index);
     // Записуємо оновлений масив в localStorage
     setTasksToLocalStorage(tasks);
 }
