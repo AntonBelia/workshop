@@ -140,6 +140,11 @@ function clearSingleTask(event) {
             // Видаляємо елемент з DOM та з localStorage
             iconContainer.parentElement.remove();
             removeTaskFromLocalStorage(index);
+
+			const deleteIcons = document.querySelectorAll('.delete-item');
+			deleteIcons.forEach((deleteIcons, newIndex) => {
+				deleteIcons.dataset.index = newIndex;
+			})
         }
     }
 }
