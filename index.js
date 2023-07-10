@@ -70,6 +70,7 @@ function createSingleTaskElement(task, index) {
   
 	// Додаємо елемент списку в список задач
 	taskList.appendChild(li);
+	updateIndexes()
   }
 
 /**
