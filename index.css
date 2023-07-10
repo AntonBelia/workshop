@@ -9,6 +9,7 @@ ul {
 }
 
 .delete-item {
+  margin: 0 8px;
   cursor: pointer;
 }
 .edit-item {

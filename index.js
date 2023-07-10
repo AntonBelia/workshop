@@ -1,205 +1,116 @@
 "use strict";
 
-/**
- * Оголошуємо змінні з HTML елементами
- */
-const taskInput = document.querySelector(".task-input");
+const form = document.querySelector(".create-task-form");
 const taskList = document.querySelector(".collection");
 const clearBtn = document.querySelector(".clear-tasks");
 const filter = document.querySelector(".filter-input");
-const form = document.querySelector(".create-task-form");
+const taskInput = document.querySelector(".task-input");
 
-/**
- * Створюємо слухачі на необхідні нам події
- */
-document.addEventListener("DOMContentLoaded", renderTasks);
-clearBtn.addEventListener("click", clearAllTasks);
-taskList.addEventListener("click", clearSingleTask);
+document.addEventListener("DOMContentLoaded", loadTasks);
 form.addEventListener("submit", createTask);
+clearBtn.addEventListener("click", clearTasks);
+taskList.addEventListener("click", removeOrEditTask);
 
-/**
- * Отримуємо дані з localStorage
- * @return {[String]} - масив з задачами, або пустий масив, якщо localStorage пустий
- */
-function getTasksFromLocalStorage() {
-  return localStorage.getItem("tasks") !== null ? JSON.parse(localStorage.getItem("tasks")) : [];}
+function createSingleTaskElement(task, index) {
+  const li = document.createElement("li");
+  li.className = "collection-item";
+  li.dataset.index = index;
+  li.appendChild(document.createTextNode(task));
 
-/**
- * Записуємо дані в localStorage
- * @param {Array} tasks - масив з задачами
- */
-function setTasksToLocalStorage(tasks) {
-  localStorage.setItem("tasks", JSON.stringify(tasks));
+  const deleteElement = document.createElement("span");
+  deleteElement.className = "delete-item";
+  deleteElement.innerHTML = '<i class="fa fa-remove"></i>';
+  li.appendChild(deleteElement);
+
+  const editElement = document.createElement("span");
+  editElement.className = "edit-item";
+  editElement.innerHTML = '<i class="fa fa-edit"></i>';
+  li.appendChild(editElement);
+
+  taskList.appendChild(li);
 }
 
-/**
- * Створюємо окрему задачу
- * @param {String} task - окрема задача
- */
-function createSingleTaskElement(task, index) {
-	// Створюємо HTML елемент li
-	const li = document.createElement('li');
-	// Додаємо елементу клас
-	li.className = 'collection-item';
-	// Кладемо в нього текстову ноду з задачею
-	li.appendChild(document.createTextNode(task));
-  
-	// Створюємо обгортку для іконки по кліку на яку буде видалена окрема задача
-	const deleteElement = document.createElement('span');
-	// Додаємо елементу клас
-	deleteElement.className = 'delete-item';
-	// Задаємо кастомний атрибут для збереження індексу елемента
-	deleteElement.dataset.index = index;
-  
-	// Кладемо в нього іконку видалення
-	deleteElement.innerHTML = '<i class="fa fa-remove"></i>';
-	// Додаємо елемент в елемент списку
-	li.appendChild(deleteElement);
-  
-	// Створюємо обгортку для іконки редагування
-	const editElement = document.createElement('span');
-	// Додаємо елементу клас
-	editElement.className = 'edit-item';
-	// Задаємо кастомний атрибут для збереження індексу елемента
-	editElement.dataset.index = index;
-  
-	// Кладемо в нього іконку редагування
-	editElement.innerHTML = '<i class="fa fa-edit"></i>';
-	// Додаємо елемент в елемент списку
-	li.appendChild(editElement);
-  
-	// Додаємо елемент списку в список задач
-	taskList.appendChild(li);
-	updateIndexes()
-  }
+function loadTasks() {
+  const tasks = checkingLocalStorage();
 
-/**
- * Додаємо в DOM існуючі задачі
- */
-function renderTasks() {
-  // Отримуємо задачі з localStorage або пустий масив
-  const tasks = getTasksFromLocalStorage();
-
-  // Проходимо по масиву задач і додаємо кожну задачу в список, в DOM
   tasks.forEach((task, index) => {
     createSingleTaskElement(task, index);
   });
 }
 
-/**
- * Створюємо окрему задачу
- * @param {Event} event - The triggering event
- */
 function createTask(event) {
-  // Блокуємо дефолтний сабміт форми
   event.preventDefault();
-  // Виходимо з функції якщо в полі немає тексту і видаляймо непотрібні пробіли до і після тексту
   if (taskInput.value.trim() === "") {
     return;
   }
 
-  // Створюємо нову задачу і додаємо в DOM
-  createSingleTaskElement(taskInput.value);
-  // Додаємо нову задачу в localStorage
+  const tasks = checkingLocalStorage();
+  const index = tasks.length;
+
+  createSingleTaskElement(taskInput.value, index);
+
   storeTaskInLocalStorage(taskInput.value);
-  // Очищуємо поле після додавання нової задачі в список
+
   taskInput.value = "";
 }
 
-/**
- * Додаємо нову створену задачу в localStorage
- * @param {String} task - окрема задача
- */
 function storeTaskInLocalStorage(task) {
-  // Отримуємо поточні задачі з localStorage
-  const tasks = getTasksFromLocalStorage();
+  const tasks = checkingLocalStorage();
 
-  // Додаємо нову задачу в масив
   tasks.push(task);
-  // Записуємо оновлений масив в localStorage
-  setTasksToLocalStorage(tasks);
+
+  localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
-/**
- * Видаляємо всі задачі з localStorage та з DOM
- */
-function clearAllTasks() {
-  // Показуємо користувачу модальне вікно для підтвердження видалення всіх задач
-  if (confirm("Ви впевнені що хочете видалити всі задачі?")) {
-    // Якщо користувач підтверджує, то видаємо всі задачі з localStorage та з DOM
+function clearTasks() {
+  if (confirm("Ви впевнені?")) {
     localStorage.clear();
     taskList.innerHTML = "";
   }
 }
 
-/**
- * Видаляємо окрему задачу з localStorage та з DOM
- * @param {Event} event - The triggering event
- */
-function clearSingleTask(event) {
-	// Отримуємо батьківський елемент елементу на якому була подія кліку
-	const iconContainer = event.target.parentElement;
-  
-	// Якщо батьківський елемент має відповідний клас
-	if (iconContainer.classList.contains('delete-item')) {
-	  // Отримуємо індекс елемента з кастомного атрибуту
-	  const index = iconContainer.dataset.index;
-  
-	  // Отримуємо підтвердження користувача
-	  if (confirm('Ви впевнені що хочете видалити цю задачу?')) {
-		// Видаляємо елемент з DOM та з localStorage
-		iconContainer.parentElement.remove();
-		removeTaskFromLocalStorage(index);
-  
-		// Оновлюємо індекси в кастомних атрибутах
-		updateIndexes();
-	  }
-	} else if (iconContainer.classList.contains('edit-item')) {
-	  // Отримуємо індекс елемента з кастомного атрибуту
-	  const index = iconContainer.dataset.index;
-  
-	  // Отримуємо поточний текст завдання
-	  const currentTask = taskList.children[index].textContent;
-  
-	  // Викликаємо діалогове вікно prompt для редагування тексту завдання
-	  const updatedTask = prompt('Введіть новий текст завдання:', currentTask);
-  
-	  if (updatedTask !== null && updatedTask.trim() !== '') {
-		// Оновлюємо текст завдання в DOM та в localStorage
-		taskList.children[index].textContent = updatedTask;
-		updateTaskInLocalStorage(index, updatedTask);
-	  }
-	}
+function removeOrEditTask(event) { 
+  const index = event.target.parentElement.parentElement.dataset.index;
+  const longRoad = event.target.parentElement
+
+  if (longRoad.classList.contains('delete-item')) {
+    if (confirm("Ви впевнені?")) {
+		longRoad.parentElement.remove();
+      removeTaskFromLocalStorage(index);
+    }
+  } else if (longRoad.classList.contains('edit-item')) {
+    const tasks = checkingLocalStorage();
+	console.log(tasks[index])
+    const newTask = prompt("Введіть зміни в завдання", tasks[index]);
+	
+    if (newTask !== null && newTask.trim() !== "") {
+		longRoad.parentElement.firstChild.textContent = newTask;
+      updateTaskInLocalStorage(newTask, index);
+    }
   }
-
-function updateIndexes() {
-    const deleteIcons = document.querySelectorAll('.delete-item');
-    deleteIcons.forEach((deleteIcon, newIndex) => {
-        deleteIcon.dataset.index = newIndex;
-    });
-
-    const editIcons = document.querySelectorAll('.edit-item');
-    editIcons.forEach((editIcon, newIndex) => {
-        editIcon.dataset.index = newIndex;
-    });
 }
 
-function updateTaskInLocalStorage(index, updatedTask) {
-    const tasks = getTasksFromLocalStorage();
-    tasks[index] = updatedTask;
-    setTasksToLocalStorage(tasks);
+function updateTaskInLocalStorage(newTask, index) {
+  const tasks = checkingLocalStorage();
+
+  tasks[index] = newTask;
+
+  localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
-/**
- * Видаляємо окрему задачу з localStorage та з DOM
- * @param taskToRemove - DOM елемент
- */
 function removeTaskFromLocalStorage(index) {
-  // Отримуємо поточні задачі з localStorage
-  const tasks = getTasksFromLocalStorage();
+  const tasks = checkingLocalStorage();
 
   tasks.splice(index, 1);
-  console.log(index);
-  // Записуємо оновлений масив в localStorage
-  setTasksToLocalStorage(tasks);
+
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+function checkingLocalStorage() {
+  let tasks;
+  if (localStorage.getItem("tasks") !== null) {
+    return (tasks = JSON.parse(localStorage.getItem("tasks")));
+  } else {
+    return (tasks = []);
+  }
 }
