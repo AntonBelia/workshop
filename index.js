@@ -112,8 +112,8 @@ function checkingLocalStorage() {
   let tasks;
   
   if (filter.value !== null) {
-    tasks = JSON.parse(localStorage.getItem("tasks"))
-    let filterTasks = JSON.parse(localStorage.getItem("tasks"))
+    tasks = JSON.parse(localStorage.getItem("tasks")) || []
+    let filterTasks = JSON.parse(localStorage.getItem("tasks")) 
     return filterTasks = tasks.filter((element) =>
     element.toLowerCase().includes(filter.value.toLowerCase())
   );}
