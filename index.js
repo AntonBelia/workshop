@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", loadTasks);
 form.addEventListener("submit", createTask);
 clearBtn.addEventListener("click", clearTasks);
 taskList.addEventListener("click", removeOrEditTask);
+filter.addEventListener("input", loadTasks);
 
 function createSingleTaskElement(task, index) {
   const li = document.createElement("li");
@@ -32,6 +33,7 @@ function createSingleTaskElement(task, index) {
 
 function loadTasks() {
   const tasks = checkingLocalStorage();
+  taskList.textContent = ''
 
   tasks.forEach((task, index) => {
     createSingleTaskElement(task, index);
@@ -69,22 +71,22 @@ function clearTasks() {
   }
 }
 
-function removeOrEditTask(event) { 
+function removeOrEditTask(event) {
   const index = event.target.parentElement.parentElement.dataset.index;
-  const longRoad = event.target.parentElement
+  const longRoad = event.target.parentElement;
 
-  if (longRoad.classList.contains('delete-item')) {
+  if (longRoad.classList.contains("delete-item")) {
     if (confirm("Ви впевнені?")) {
-		longRoad.parentElement.remove();
+      longRoad.parentElement.remove();
       removeTaskFromLocalStorage(index);
     }
-  } else if (longRoad.classList.contains('edit-item')) {
+  } else if (longRoad.classList.contains("edit-item")) {
     const tasks = checkingLocalStorage();
-	console.log(tasks[index])
+    console.log(tasks[index]);
     const newTask = prompt("Введіть зміни в завдання", tasks[index]);
-	
+
     if (newTask !== null && newTask.trim() !== "") {
-		longRoad.parentElement.firstChild.textContent = newTask;
+      longRoad.parentElement.firstChild.textContent = newTask;
       updateTaskInLocalStorage(newTask, index);
     }
   }
@@ -108,6 +110,13 @@ function removeTaskFromLocalStorage(index) {
 
 function checkingLocalStorage() {
   let tasks;
+  
+  if (filter.value !== null) {
+    tasks = JSON.parse(localStorage.getItem("tasks"))
+    let filterTasks = JSON.parse(localStorage.getItem("tasks"))
+    return filterTasks = tasks.filter((element) =>
+    element.toLowerCase().includes(filter.value.toLowerCase())
+  );}
   if (localStorage.getItem("tasks") !== null) {
     return (tasks = JSON.parse(localStorage.getItem("tasks")));
   } else {
